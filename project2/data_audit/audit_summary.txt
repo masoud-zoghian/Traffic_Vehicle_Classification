@@ -1,0 +1,123 @@
+
+========================================
+Traffic Vehicle Classification
+Data Audit Summary
+========================================
+
+FINAL CLASSES
+-------------
+Number of classes: 7
+
+Classes:
+- ambulance
+- autobus
+- kamyun
+- minibus
+- savari
+- taxi
+- vanet
+
+
+DATA SOURCES
+------------
+1. DATA/dataset/train
+2. DATA/dataset/clean
+3. DATA/datasetv2_TrainClean/train
+4. DATA/datasetv2_TrainClean/clean
+
+
+IMAGE COUNTS
+------------
+
+DATA/dataset/train
+Total: 391
+
+ambulance: 50
+autobus: 48
+kamyun: 100
+minibus: 49
+savari: 50
+taxi: 46
+vanet: 48
+
+
+DATA/dataset/clean
+Total: 436
+
+ambulance: 49
+autobus: 49
+kamyun: 99
+minibus: 44
+savari: 50
+taxi: 50
+vanet: 95
+
+
+DATA/datasetv2_TrainClean/train
+Total: 1517
+
+ambulance: 169
+autobus: 192
+kamyun: 387
+minibus: 177
+savari: 198
+taxi: 198
+vanet: 196
+
+
+DATA/datasetv2_TrainClean/clean
+Total: 1540
+
+ambulance: 101
+autobus: 175
+kamyun: 363
+minibus: 124
+savari: 200
+taxi: 190
+vanet: 387
+
+
+TOTAL DATASET
+-------------
+Total images: 3884
+
+ambulance: 369
+autobus: 464
+kamyun: 949
+minibus: 394
+savari: 498
+taxi: 484
+vanet: 726
+
+
+READABILITY CHECK
+-----------------
+Unreadable images: 0
+
+
+DUPLICATE CHECK
+---------------
+Unique image contents: 3868
+Duplicate groups: 16
+
+All detected duplicate groups were within the same class.
+
+No cross-class duplicate conflict was detected.
+
+
+CONCLUSION
+----------
+The dataset contains 7 vehicle classes and 3884 image files
+across four training sources.
+
+No unreadable images were detected.
+
+16 exact duplicate groups were detected. These duplicates
+occurred within the same class and did not create class-label
+conflicts.
+
+Image dimensions are not uniform and will be handled later
+through the preprocessing/transformation pipeline.
+
+The class distribution is not perfectly balanced and will
+be considered in later experiments.
