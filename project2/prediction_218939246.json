@@ -1,0 +1,24 @@
+{
+  "filepath": "14_resNet\\newData\\dataTest\\test\\vanet\\218939246.jpg",
+  "predicted_class": "vanet",
+  "confidence": 0.999667763710022,
+  "needs_review": false,
+  "coarse_prediction": "vanet",
+  "coarse_probs": {
+    "ambulance": 0.0002081623242702335,
+    "autobus": 1.8105188814843132e-07,
+    "minibus": 1.669350967858918e-05,
+    "savari": 7.874209404690191e-05,
+    "taxi": 3.00599663205503e-06,
+    "truck_merged": 2.5473989808233455e-05,
+    "vanet": 0.999667763710022
+  },
+  "cascade_probs": null,
+  "confidence_threshold_used": 0.99,
+  "model_paths": {
+    "coarse_model": "C:\\Users\\Lenovo\\Desktop\\project 2\\project2\\14_resNet\\saved_models\\coarse_resnet18_fine_tuning_weighted.pt",
+    "cascade_model": "C:\\Users\\Lenovo\\Desktop\\project 2\\project2\\14_resNet\\saved_models\\cascade_resnet18_kamyun_kamyunet.pt"
+  },
+  "timestamp": "2026-10-07T12:08:39.870232+00:00",
+  "device_used": "cpu"
+}
