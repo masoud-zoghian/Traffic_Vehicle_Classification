@@ -1,0 +1,7 @@
+{
+  "confidence_threshold": 0.99,
+  "known_false_positive_rate": 0.1009,
+  "neysan_true_positive_rate": 0.2924,
+  "known_set_size": 664,
+  "neysan_calibration_set_size": 277
+}
