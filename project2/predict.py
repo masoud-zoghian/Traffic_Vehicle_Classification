@@ -25,6 +25,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import transforms, models
 from PIL import Image
+from sklearn.metrics import (classification_report,confusion_matrix,accuracy_score)
+import pandas as pd
 
 # paths 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -165,21 +167,131 @@ def predict_single_image(image_path, save_json=True):
 
     return output
 
+
+# -----------------------------------------------------
+def evaluate_folder(test_dir):
+    test_dir = Path(test_dir)
+    ALL_8_CLASSES = [
+        "ambulance",
+        "autobus",
+        "kamyun",
+        "kamyunet",
+        "minibus",
+        "savari",
+        "taxi",
+        "vanet",
+    ]
+    image_extensions = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
+    image_paths = []
+    true_labels = []
+    for class_name in ALL_8_CLASSES:
+        class_dir = test_dir / class_name
+
+        if not class_dir.is_dir():
+            print(f"Warning: folder not found: {class_dir}")
+            continue
+
+        for image_path in class_dir.rglob("*"):
+            if image_path.is_file() and image_path.suffix.lower() in image_extensions:
+                image_paths.append(image_path)
+                true_labels.append(class_name)
+
+    if not image_paths:
+        print("No images found in the test folder.")
+        return
+
+    print(f"Total images: {len(image_paths)}")
+    print("Loading models...")
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    coarse_model, cascade_model = load_models(device)
+    confidence_threshold = load_confidence_threshold()
+
+    predicted_labels = []
+    needs_review_values = []
+    failed_images = []
+
+    for i, image_path in enumerate(image_paths, start=1):
+        try:
+            with Image.open(image_path) as img:
+                image = img.convert("RGB")
+
+            prediction = predict_vehicle(
+                image,
+                coarse_model,
+                cascade_model,
+                device,
+                confidence_threshold,
+            )
+
+            predicted_labels.append(prediction["predicted_class"])
+            needs_review_values.append(prediction["needs_review"])
+
+        except Exception as e:
+            print(f"Error processing {image_path}: {e}")
+            failed_images.append(str(image_path))
+            predicted_labels.append("__ERROR__")
+            needs_review_values.append(False)
+
+        if i % 50 == 0 or i == len(image_paths):
+            print(f"Processed {i}/{len(image_paths)} images")
+
+    print("\n=== FOLDER TEST RESULTS ===")    
+    report = classification_report(
+        true_labels,
+        predicted_labels,
+        labels=ALL_8_CLASSES,
+        target_names=ALL_8_CLASSES,
+        output_dict=True,
+        zero_division=0,
+    )
+    accuracy = accuracy_score(true_labels, predicted_labels)
+    cm = confusion_matrix(true_labels,predicted_labels,labels=ALL_8_CLASSES)
+    review_rate =  sum(needs_review_values) / len(needs_review_values)
+    
+    print(f"Accuracy: {accuracy:.4%}")
+    print(f"Needs review rate: {review_rate:.2%}")
+    print(f"Failed images: {len(failed_images)}")
+
+    results = {
+        "test_folder": test_dir.name,
+        "total_images": len(image_paths),
+        "accuracy": accuracy,
+        "classification_report": report,
+        "confusion_matrix": {
+        "class_order": ALL_8_CLASSES,
+        "matrix": [" ".join(f"{v:5d}" for v in row) for row in cm.tolist()]
+        },
+        "class_order": ALL_8_CLASSES,
+        "needs_review_rate": review_rate,
+        "failed_images_count": len(failed_images),
+        "failed_images": failed_images,
+    }
+    json_path = Path(__file__).resolve().parent / f"{test_dir.name}.json"
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=4, ensure_ascii=False)
+    print(f"\nJSON results saved to: {json_path}")
+
+    if failed_images:
+        print("\nImages that could not be processed:")
+        for path in failed_images:
+            print(path)
+
 # command-line interface
 def main():
-    parser = argparse.ArgumentParser(description="Predict vehicle class for a single image.")
-    parser.add_argument("--image", type=str, required=False, default=None, help="Path to the input image.")
-    parser.add_argument("--no-save", action="store_true", help="Do not write a JSON output file.")
+    parser = argparse.ArgumentParser(description="Predict one image or evaluate a test folder.")
+    parser.add_argument("--image",type=str,default=None,help="Path to one image.")
+    parser.add_argument("--test-dir",type=str,default=None,help="Path to a folder containing one subfolder per class.")
+    parser.add_argument("--no-save",action="store_true",help="Do not save JSON for single-image prediction.")
     args = parser.parse_args()
 
-    if args.image is None:
-        print("No --image argument given. Example usage:")
-        print('  python predict.py --image "path/to/image.jpg"')
-        return
-    
-    result = predict_single_image(args.image, save_json=not args.no_save)
-    print(json.dumps(result, indent=2))
+    if args.test_dir:
+        evaluate_folder(args.test_dir)
+    elif args.image:
+        result = predict_single_image(args.image,save_json=not args.no_save)
+        print(json.dumps(result, indent=2))
+    else:
+        parser.error("Specify either --image or --test-dir.")
 
 if __name__ == "__main__":
     main()
- 
